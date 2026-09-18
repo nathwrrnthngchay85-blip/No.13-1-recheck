@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chinese Vocabulary Game</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body { 
+            font-family: 'Noto Sans Thai', 'Inter', sans-serif; 
+            background-color: #fdf2f8; /* Soft pink background */
+        }
+        
+        /* Utility animations */
+        .pop-in { animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        @keyframes popIn { 
+            0% { opacity: 0; transform: scale(0.9); } 
+            100% { opacity: 1; transform: scale(1); } 
+        }
+        
+        .shake { animation: shake 0.4s ease-in-out; }
+        @keyframes shake { 
+            0%, 100% { transform: translateX(0); } 
+            25% { transform: translateX(-5px); } 
+            75% { transform: translateX(5px); } 
+        }
+
+        /* Floating animations for background decorations */
+        @keyframes float {
+            0% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(5deg); }
+            100% { transform: translateY(0px) rotate(0deg); }
+        }
+        @keyframes float-reverse {
+            0% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-15px) rotate(-5deg); }
+            100% { transform: translateY(0px) rotate(0deg); }
+        }
+        .animate-float { animation: float 6s ease-in-out infinite; }
+        .animate-float-delayed { animation: float-reverse 7s ease-in-out infinite 1s; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-4 selection:bg-pink-200 selection:text-pink-900 relative overflow-hidden">
+
+    <!-- Pink Face Bubble -->
+    <div class="absolute top-10 left-10 opacity-40 animate-float pointer-events-none hidden md:block">
+        <svg width="80" height="80" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M50 10 C 20 10, 10 40, 10 50 C 10 60, 20 90, 50 90 C 80 90, 90 60, 90 50 C 90 40, 80 10, 50 10 Z" fill="#fbcfe8"/>
+            <circle cx="35" cy="45" r="5" fill="#f472b6" />
+            <circle cx="65" cy="45" r="5" fill="#f472b6" />
+            <path d="M45 60 Q 50 65, 55 60" stroke="#f472b6" stroke-width="3" stroke-linecap="round"/>
+        </svg>
+    </div>
+    
+    <!-- Green Leaf Shape -->
+    <div class="absolute bottom-20 right-10 opacity-40 animate-float-delayed pointer-events-none hidden md:block">
+        <svg width="90" height="90" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M50 90 C 20 90, 10 60, 10 50 C 10 40, 30 10, 50 10 C 70 10, 90 40, 90 50 C 90 60, 80 90, 50 90 Z" fill="#a7f3d0"/>
+            <path d="M50 10 L 50 90" stroke="#6ee7b7" stroke-width="2" stroke-dasharray="4 4"/>
+            <path d="M20 50 Q 50 30, 80 50" stroke="#6ee7b7" stroke-width="2"/>
+        </svg>
+    </div>
+    
+    <!-- Pink Sparkle -->
+    <div class="absolute top-20 right-10 md:right-20 opacity-30 animate-float pointer-events-none w-10 h-10 md:w-auto md:h-auto">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2L15 9L22 12L15 15L12 22L9 15L2 12L9 9L12 2Z" fill="#f9a8d4"/>
+        </svg>
+    </div>
+    
+    <!-- Green Sparkle -->
+    <div class="absolute bottom-10 left-10 md:left-20 opacity-30 animate-float-delayed pointer-events-none w-12 h-12 md:w-auto md:h-auto">
+        <svg width="50" height="50" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2C12 2 16 6 16 12C16 18 12 22 12 22C12 22 8 18 8 12C8 6 12 2 12 2Z" fill="#6ee7b7"/>
+        </svg>
+    </div>
+
+    <main id="game-container" class="w-full max-w-md md:max-w-lg bg-white rounded-[2rem] shadow-sm border border-pink-50 p-6 md:p-10 relative z-10 pop-in">
+        
+        <header class="flex justify-between items-center text-sm font-medium text-slate-400 mb-8">
+            <!-- Words left counter -->
+            <div class="flex items-center gap-2 bg-emerald-50 px-3 py-1.5 rounded-full text-emerald-600">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                </svg>
+                <span id="words-left">0 คำ</span>
+            </div>
+            
+            <!-- Center Cute Icon -->
+            <div class="w-12 h-12 bg-pink-50 rounded-full flex items-center justify-center -mt-6 md:-mt-8 shadow-sm animate-float border-4 border-white">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 21.35L10.55 20.03C5.4 15.36 2 12.28 2 8.5C2 5.42 4.42 3 7.5 3C9.24 3 10.91 3.81 12 5.09C13.09 3.81 14.76 3 16.5 3C19.58 3 22 5.42 22 8.5C22 12.28 18.6 15.36 13.45 20.04L12 21.35Z" fill="#f472b6"/>
+                    <circle cx="8" cy="9" r="1.5" fill="white"/>
+                    <circle cx="16" cy="9" r="1.5" fill="white"/>
+                </svg>
+            </div>
+
+            <!-- Score counter -->
+            <div class="flex items-center gap-2 bg-pink-50 px-3 py-1.5 rounded-full text-pink-600">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                </svg>
+                <span id="score-display">0</span>
+            </div>
+        </header>
+
+        <section id="play-area" class="text-center flex flex-col items-center min-h-[220px] justify-center relative">
+            <h2 class="text-sm font-semibold tracking-wide text-pink-400 uppercase mb-2">แปลเป็นภาษาจีน</h2>
+            <div id="meaning-display" class="text-2xl md:text-3xl font-bold text-slate-700 mb-6 min-h-[40px] transition-all duration-300">
+                กำลังโหลด...
+            </div>
+            
+            <form id="answer-form" class="w-full relative">
+                <input 
+                    type="text" 
+                    id="answer-input" 
+                    class="w-full text-center text-xl p-4 rounded-2xl border-2 border-slate-100 bg-slate-50 focus:bg-white focus:outline-none focus:border-emerald-300 transition-colors shadow-inner"
+                    placeholder="พิมพ์อักษรจีนที่นี่..."
+                    autocomplete="off"
+                >
+                <button type="submit" class="w-full mt-4 bg-emerald-400 hover:bg-emerald-500 text-white font-medium py-4 px-6 rounded-2xl transition-transform active:scale-95 shadow-sm shadow-emerald-200">
+                    ตรวจคำตอบ
+                </button>
+            </form>
+
+            <div id="feedback" class="mt-4 min-h-[24px] text-sm font-medium transition-opacity duration-300 opacity-0">
+                <!-- Feedback messages will appear here -->
+            </div>
+        </section>
+
+        <section id="end-screen" class="hidden text-center flex-col items-center justify-center min-h-[220px]">
+            <div class="w-24 h-24 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6 animate-float border-4 border-white shadow-sm">
+                <!-- Happy Green Mascot -->
+                <svg width="60" height="60" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M50 10 C 20 10, 10 40, 10 50 C 10 60, 20 90, 50 90 C 80 90, 90 60, 90 50 C 90 40, 80 10, 50 10 Z" fill="#34d399"/>
+                    <circle cx="35" cy="45" r="5" fill="#047857" />
+                    <circle cx="65" cy="45" r="5" fill="#047857" />
+                    <path d="M40 65 Q 50 75, 60 65" stroke="#047857" stroke-width="5" stroke-linecap="round"/>
+                </svg>
+            </div>
+            <h2 class="text-2xl font-bold text-slate-700 mb-2">เก่งมากเลย! 🎉</h2>
+            <p class="text-slate-500 mb-8">คุณทบทวนคำศัพท์ครบทั้งหมดแล้ว</p>
+            <button onclick="initGame()" class="bg-pink-400 hover:bg-pink-500 text-white font-medium py-3 px-8 rounded-full transition-transform active:scale-95 shadow-md shadow-pink-200 inline-flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" />
+                </svg>
+                เล่นอีกครั้ง
+            </button>
+        </section>
+    </main>
+
+    <script>
+        const vocabularyData = [
+            { ch: "丝毫", pinyin: "sīháo", th: "แม้แต่น้อย, เพียงเล็กน้อย" },
+            { ch: "压迫", pinyin: "yāpò", th: "กดขี่, บีบคั้น" },
+            { ch: "电压", pinyin: "diàn yā", th: "แรงดันไฟฟ้า" },
+            { ch: "高压", pinyin: "gāoyā", th: "แรงดันสูง, ความดันสูง, แรงกดดัน" },
+            { ch: "气压", pinyin: "qìyā", th: "ความกดอากาศ" },
+            { ch: "压力", pinyin: "yālì", th: "ความกดดัน, ความเครียด" },
+            { ch: "压缩", pinyin: "yāsuō", th: "อัด, บีบอัด" },
+            { ch: "压制", pinyin: "yāzhì", th: "ปราบปราม, กดขี่, ยับยั้ง" },
+            { ch: "镇压", pinyin: "zhènyā", th: "ปราบปราม, กดขี่ด้วยความรุนแรง" },
+            { ch: "至今", pinyin: "zhì jīn", th: "จนถึงตอนนี้, จนบัดนี้" },
+            { ch: "至少", pinyin: "zhìshǎo", th: "อย่างน้อย" },
+            { ch: "甚至", pinyin: "shènzhì", th: "แม้กระทั่ง, ถึงกับ" },
+            { ch: "甚至于", pinyin: "shènzhìyú", th: "แม้กระทั่ง, ถึงกับ" },
+            { ch: "以至", pinyin: "yǐzhì", th: "จนกระทั่ง, ถึงขนาดที่" },
+            { ch: "至于", pinyin: "zhìyú", th: "ส่วน, สำหรับ, ถึงกับ" },
+            { ch: "自始至终", pinyin: "zìshǐzhìzhōng", th: "ตั้งแต่ต้นจนจบ, ตลอดมา" },
+            { ch: "竹子", pinyin: "zhúzi", th: "ไม้ไผ่" },
+            { ch: "血液", pinyin: "xuè yè", th: "เลือด" },
+            { ch: "鲜血", pinyin: "xiānxuè", th: "เลือดสด" },
+            { ch: "血管", pinyin: "xuè guǎn", th: "หลอดเลือด, เส้นเลือด" },
+            { ch: "血汗", pinyin: "xuè hàn", th: "เลือดและเหงื่อ" },
+            { ch: "伞", pinyin: "sǎn", th: "ร่ม" },
+            { ch: "斗争", pinyin: "dòuzhēng", th: "ต่อสู้, ดิ้นรน" },
+            { ch: "战争", pinyin: "zhànzhēng", th: "สงคราม" },
+            { ch: "争论", pinyin: "zhēnglùn", th: "โต้เถียง, ถกเถียง, การโต้เถียง" },
+            { ch: "争取", pinyin: "zhēngqǔ", th: "แย่งชิง, ต่อสู้เพื่อ, พยายาม" },
+            { ch: "竞争", pinyin: "jìngzhēng", th: "แข่งขัน, การแข่งขัน" },
+            { ch: "力争", pinyin: "lìzhēng", th: "พยายามอย่างเต็มที่, มุ่งมั่น" },
+            { ch: "争夺", pinyin: "zhēngduó", th: "แย่งชิง, ช่วงชิง" },
+            { ch: "并且", pinyin: "bìngqiě", th: "และ, อีกทั้ง" },
+            { ch: "严格", pinyin: "yángé", th: "เข้มงวด, เคร่งครัด" },
+            { ch: "严肃", pinyin: "yánsù", th: "เคร่งขรึม, จริงจัง" },
+            { ch: "严重", pinyin: "yánzhòng", th: "ร้ายแรง, รุนแรง" },
+            { ch: "庄严", pinyin: "zhuāngyán", th: "สง่างาม, เคร่งขรึม" },
+            { ch: "严禁", pinyin: "yánjìn", th: "ห้ามเด็ดขาด, ห้ามอย่างเคร่งครัด" },
+            { ch: "严厉", pinyin: "yánlì", th: "เข้มงวด, รุนแรง" }
+        ];
+
+        let vocabQueue = [];
+        let score = 0;
+        let currentWord = null;
+        let isWaitingForNext = false;
+
+        // DOM Elements
+        const wordsLeftEl = document.getElementById('words-left');
+        const scoreDisplayEl = document.getElementById('score-display');
+        const meaningDisplayEl = document.getElementById('meaning-display');
+        const answerInputEl = document.getElementById('answer-input');
+        const answerFormEl = document.getElementById('answer-form');
+        const feedbackEl = document.getElementById('feedback');
+        const playAreaEl = document.getElementById('play-area');
+        const endScreenEl = document.getElementById('end-screen');
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function initGame() {
+            vocabQueue = [...vocabularyData];
+            shuffleArray(vocabQueue);
+            score = 0;
+            
+            playAreaEl.classList.remove('hidden');
+            playAreaEl.classList.add('flex');
+            endScreenEl.classList.add('hidden');
+            endScreenEl.classList.remove('flex');
+            
+            loadNextWord();
+        }
+
+        function updateStats() {
+            wordsLeftEl.innerText = `เหลือ: ${vocabQueue.length} คำ`;
+            scoreDisplayEl.innerText = `${score}`;
+        }
+
+        function showEndScreen() {
+            playAreaEl.classList.add('hidden');
+            playAreaEl.classList.remove('flex');
+            endScreenEl.classList.remove('hidden');
+            endScreenEl.classList.add('flex');
+        }
+
+        function loadNextWord() {
+            if (vocabQueue.length === 0) {
+                showEndScreen();
+                return;
+            }
+
+            currentWord = vocabQueue[0];
+            updateStats();
+            
+            // Animate text change
+            meaningDisplayEl.style.opacity = 0;
+            setTimeout(() => {
+                meaningDisplayEl.innerText = currentWord.th;
+                meaningDisplayEl.style.opacity = 1;
+            }, 150);
+            
+            answerInputEl.value = '';
+            answerInputEl.disabled = false;
+            answerInputEl.focus();
+            
+            feedbackEl.style.opacity = 0;
+            isWaitingForNext = false;
+        }
+
+        answerFormEl.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            if (isWaitingForNext) {
+                loadNextWord();
+                return;
+            }
+
+            const userAnswer = answerInputEl.value.trim();
+            if (!userAnswer) return;
+
+            isWaitingForNext = true;
+            answerInputEl.disabled = true;
+
+            if (userAnswer === currentWord.ch) {
+                // Correct answer
+                score += 10;
+                vocabQueue.shift(); // Remove from queue
+                
+                feedbackEl.innerHTML = `<span class="text-emerald-500">ถูกต้อง! 🎉 (${currentWord.pinyin})</span>`;
+                feedbackEl.style.opacity = 1;
+                
+                // Add tiny visual feedback
+                answerInputEl.classList.add('bg-emerald-50', 'border-emerald-300');
+                
+                setTimeout(() => {
+                    answerInputEl.classList.remove('bg-emerald-50', 'border-emerald-300');
+                    loadNextWord();
+                }, 1000);
+            } else {
+                // Wrong answer
+                answerInputEl.parentElement.classList.add('shake');
+                
+                // Move word to position 5 (or end if less than 5 items left)
+                const wordToReinsert = vocabQueue.shift();
+                const insertIndex = Math.min(4, vocabQueue.length); // 4 means it will be the 5th item (index 0,1,2,3,4)
+                vocabQueue.splice(insertIndex, 0, wordToReinsert);
+                
+                feedbackEl.innerHTML = `<span class="text-pink-500">ผิดจ้า! คำที่ถูกคือ: <strong>${currentWord.ch}</strong> (${currentWord.pinyin})</span><br><span class="text-xs text-slate-400">กด Enter เพื่อไปต่อ (คำนี้จะวนมาถามใหม่)</span>`;
+                feedbackEl.style.opacity = 1;
+                
+                answerInputEl.classList.add('bg-pink-50', 'border-pink-300', 'text-pink-700');
+                
+                setTimeout(() => {
+                    answerInputEl.parentElement.classList.remove('shake');
+                    answerInputEl.classList.remove('bg-pink-50', 'border-pink-300', 'text-pink-700');
+                    // wait for user to press Enter or click submit again to proceed
+                    answerInputEl.disabled = false;
+                    answerInputEl.value = '';
+                    answerInputEl.focus();
+                }, 400);
+            }
+            updateStats();
+        });
+
+        // Initialize on load
+        window.onload = initGame;
+    </script>
+</body>
+</html>
